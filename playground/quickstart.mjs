@@ -10,6 +10,17 @@ import { ConversationChain } from "langchain/chains";
 import { PlanAndExecuteAgentExecutor } from "langchain/experimental/plan_and_execute";
 import { exec } from "child_process";
 
+/*
+Note: for execute this file
+from Bash terminal:
+    export OPENAI_API_KEY=yourApiKey
+    export SERPAPI_API_KEY=yourApiKey
+
+from Power shell
+    set OPENAI_API_KEY=yourApiKey
+    set SERPAPI_API_KEY=yourApiKey
+*/
+
 // export OPENAI_API_KEY=<>
 // export SERPAPI_API_KEY=<>
 // Replace with your API keys!
@@ -30,7 +41,7 @@ import { exec } from "child_process";
 // console.log({formattedPromptTemplate})
 
 
-#1. LLM Chain => Simle prompt
+#1. LLM Chain => Simple prompt
 Define model + prompt config ()
    Template (role + topic/quetion) + prompt config (format) + model config + executor (prompt, model) + inputs + executor call
 */
