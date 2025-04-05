@@ -1,7 +1,3 @@
-# Langchain Course
-
-This course teaches you how to build AI applications using [Langchain](https: //langchain.org/ ) and [OpenAI's API](https: //openai.com/api/ ) with [Next.js](https: //nextjs.org/ ).
-
 ## Getting Started
 
 To get started, clone this repository and install the dependencies:
@@ -54,6 +50,3 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https: //nextjs.org/ docs/deployment) for more details.
 
-## Feedback and Contributions
-
-Your feedback and contributions are welcome! Please feel free to open an issue or submit a pull request.

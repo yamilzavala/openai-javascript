@@ -6,7 +6,7 @@ let memory;
 let model;
 let chain;
 
-export default async function habdler(req, res) {
+export default async function handler(req, res) {
     if(req.method === 'POST') {
         const {input, firstMsg} = req.body;
     
