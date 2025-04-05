@@ -1,4 +1,4 @@
-import { OpenAI } from "langchain/llms/openai";
+import { ChatOpenAI } from "@langchain/openai";
 import { BufferMemory } from "langchain/memory";
 import { ConversationChain } from "langchain/chains";
 
@@ -17,7 +17,7 @@ export default async function handler(req, res) {
         //start open ai connection
         if(firstMsg) {
             console.log('Initializing chain...')
-            model = new OpenAI({
+            model = new ChatOpenAI({
                 modelName: "gpt-3.5-turbo"
             })
             memory = new BufferMemory() 
@@ -32,4 +32,4 @@ export default async function handler(req, res) {
     }
 } 
 
-const open = OpenAI
+const open = ChatOpenAI

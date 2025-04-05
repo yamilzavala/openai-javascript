@@ -1,4 +1,4 @@
-import { OpenAI } from "langchain/llms/openai";
+import { OpenAI } from "@langchain/openai";
 import SSE from "express-sse";
 
 const sse = new SSE();
@@ -8,37 +8,38 @@ export default function handler(req, res) {
     const { input } = req.body;
 
     if (!input) {
-      throw new Error("No input");
+      return res.status(400).json({ error: "No input" });
     }
-    // Initialize model
+
     const chat = new OpenAI({
       modelName: "gpt-3.5-turbo",
-      //Makes the model send tokens as they are generated
-      streaming: true,   
-      //Define functions that execute during the process              
-      callbacks: [                      
+      streaming: true,
+      callbacks: [
         {
-            //Executes every time a new token arrives and sends it to the frontend
-          handleLLMNewToken(token) {  
-            //Sends the token as an SSE event called newToken  
-            sse.send(token, 'newToken' )
-          }
-        }
-      ]
-    })
+          handleLLMNewToken(token) {
+            sse.send(token, "newToken");
+          },
+        },
+      ],
+    });
 
-    // create the prompt
-    const prompt = `Create me a short rap about my name and city. Make it funny and punny. Name: ${input}`
-    console.log({prompt})
+    const prompt = `Create me a short rap about my name and city. Make it funny and punny. Name: ${input}`;
+    console.log({ prompt });
 
-    // call frontend to backend
+    // ⚠️ No usar await aquí para no bloquear el streaming
     chat.call(prompt).then(() => {
-      sse.send(null, 'end')
-    })
+      sse.send(null, "end");
+    }).catch((err) => {
+      console.error("Error in streaming call:", err);
+      sse.send("[Error generating response]", "newToken");
+      sse.send(null, "end");
+    });
 
-    return res.status(200).json({ result: "Streaming complete" });
+    // Importante: responder al frontend inmediatamente
+    return res.status(200).json({ result: "Streaming started" });
+
   } else if (req.method === "GET") {
-    sse.init(req, res);
+    sse.init(req, res); // inicia canal SSE
   } else {
     res.status(405).json({ message: "Method not allowed" });
   }
