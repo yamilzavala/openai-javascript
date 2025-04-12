@@ -8,11 +8,7 @@ import Title from "../components/Title";
 import TwoColumnLayout from "../components/TwoColumnLayout";
 
 /**
- *
- * MODULE 4: YOUTUBE CHATBOT:
- *
- * Start with the UI.. no need to recreate!
- *
+ * YOUTUBE CHATBOT:
  *  */
 const VideoChat = () => {
   // We'll set a default YouTube video so we don't have to copy and paste this every time
@@ -53,7 +49,6 @@ const VideoChat = () => {
         body: JSON.stringify({ prompt: prompt, firstMsg }),
       });
 
-      console.log({ response });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -64,7 +59,7 @@ const VideoChat = () => {
       setMessages((prevMessages) => [
         ...prevMessages,
         {
-          text: searchRes.output.text,
+          text: searchRes?.output?.text,
           type: "bot",
         },
       ]);
