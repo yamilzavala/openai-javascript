@@ -27,36 +27,60 @@ const initializeChain = async (initialPrompt, transcript) => {
       modelName: "gpt-3.5-turbo"
     })
 
-    //HNSWLib
+    /*
+    HNSWLib is a local, in-memory vector database, useful for:
+    Storing text embeddings (OpenAIEmbeddings)
+    Performing fast similarity searches
+    In this case, it converts the video transcript into vectors so the model can search for video fragments related to a question.
+
+    Passing the transcript directly is possible but doesn't scale.
+    Problems with direct transcript usage:
+    The LLM has a token limit
+    It cannot read an entire long video
+    Intelligent search is not possible
+    By using HNSWLib, you can:
+    Split the transcript into chunks
+    Embed each chunk
+    Search only the most relevant ones for the question
+    */
     const vectorStore = await HNSWLib.fromDocuments(
       [{pageContent: transcript}],
       new OpenAIEmbeddings()
     )
 
-    // const directory = 'C:/Users/yamil.zavala/Documents/Anothers/Openai-javascript-langchain/openai-javascript-course'
-    // await vectorStore.save(directory)
+    /*
+    Chain is an instance of a "processing chain" in LangChain.
+    It is an object that defines how information flows between the user, the documents, and the LLM model.
 
-    // const loadVectorStore = await HNSWLib.load(
-    //   directory,
-    //   new OpenAIEmbeddings()
-    // );
-
-    chain = ConversationalRetrievalQAChain.fromLLM(
+    ConversationalRetrievalQAChain is a special type of Chain in LangChain that:
+    >Performs semantic search over embedded documents
+    >Maintains a conversation history
+    >Allows the LLM to provide contextualized responses
+    */
+     chain = ConversationalRetrievalQAChain.fromLLM(
       model,
       vectorStore.asRetriever(),
       {verbose: true}
     )
 
-     // Guardamos el mensaje inicial
+    // Save the initial message
      chatHistory.push(new HumanMessage(initialPrompt));
      uiChatHistory.push({ role: "user", content: initialPrompt });
 
+    /*
+    chain.call:
+    "question" (your prompt) is converted into a vector
+    vectorStore performs similarity matching with chunks of the transcript
+    The k most similar chunks are returned (default k=4)
+    These chunks are passed as context to the LLM
+    The LLM generates a response using that data
+    */ 
     const response = await chain.call({
       question: initialPrompt,
       chat_history: chatHistory
     })
 
-    // Guardamos la respuesta
+    // Save the response
     chatHistory.push(new AIMessage(response.text));
     uiChatHistory.push({ role: "assistant", content: response.text });
 
@@ -108,13 +132,11 @@ export default async function handler(req, res) {
           .status(500)
           .json({ error: "An error occurred while fetching transcript" });
       }
-
-      // do this third!
     } else {
       
       try {
         // If it's not the first message, we can chat with the bot
-        // Guardamos el mensaje inicial
+        // We save the initial message
         chatHistory.push(new HumanMessage(prompt));
         uiChatHistory.push({ role: "user", content: prompt });
     
