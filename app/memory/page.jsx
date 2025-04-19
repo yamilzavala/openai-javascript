@@ -4,6 +4,7 @@ import PrompBox from '../components/PromptBox'
 import Title from '../components/Title' 
 import TwoColumnLayout from '../components/TwoColumnLayout' 
 import ResultWithSources from '../components/ResultWithSources' 
+import Loading from "../components/Loading";
 import '../globals.css'
 
 import React, { useState } from 'react';
@@ -11,6 +12,7 @@ import React, { useState } from 'react';
 const Memory = () => {
     const [prompt, setPrompt] = useState('')
     const [error, setError] = useState(null)
+    const [loading, setLoading] = useState(false);
     const [messages, setMessages] = useState([
         {
             type: "bot",
@@ -25,7 +27,7 @@ const Memory = () => {
         try {    
             //add user message
             setMessages((prevMsgs) => [...prevMsgs, {text: prompt, type:'user', sourceDocuments: null}])
-
+            setLoading(true)
             const resp = await fetch('api/memory', {
                 method: 'POST',
                 headers: {
@@ -52,6 +54,8 @@ const Memory = () => {
             setError('')
         } catch (error) {
             setError(error)
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -61,6 +65,10 @@ const Memory = () => {
 
     return (
         <>
+          {loading && (
+            <Loading/>
+          )}
+
           <Title headingText={"Memory"} emoji={"🧠"} />
 
           <TwoColumnLayout            

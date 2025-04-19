@@ -6,13 +6,10 @@ import PromptBox from "../components/PromptBox";
 import ResultWithSources from "../components/ResultWithSources";
 import Title from "../components/Title";
 import TwoColumnLayout from "../components/TwoColumnLayout";
+import Loading from "../components/Loading";
 
 /**
- *
- * Module 5: AI Content Generator
- *
- * Use this to create new content from a piece of content!
- *
+ * AI Content Generator
  */
 const ContentGenerator = () => {
   // Follw up: Write me a tweet about pedro pascal.
@@ -21,6 +18,7 @@ const ContentGenerator = () => {
   );
   const [topic, setTopic] = useState("Pedro Pascal");
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [firstMsg, setFirstMsg] = useState(true);
   const [messages, setMessages] = useState([
     {
@@ -35,7 +33,6 @@ const ContentGenerator = () => {
     setTopic(e.target.value);
   };
 
-  // Make sure to change the API route
   const handleSubmit = async () => {
     try {
       // Push the user's message into the messages array
@@ -44,6 +41,7 @@ const ContentGenerator = () => {
         { text: prompt, type: "user", sourceDocuments: null },
       ]);
 
+      setLoading(true)
       const response = await fetch(`/api/content-generator`, {
         method: "POST",
         headers: {
@@ -74,11 +72,16 @@ const ContentGenerator = () => {
     } catch (err) {
       console.error(err);
       setError("Error fetching transcript. Please try again.");
+    } finally {
+      setLoading(false)
     }
   };
 
-  return (
+   return (
     <>
+      {loading && (
+        <Loading/>
+      )}
       <Title emoji="🧙🏾‍♂️" headingText="AI Content Generator" />
       <TwoColumnLayout
         leftChildren={

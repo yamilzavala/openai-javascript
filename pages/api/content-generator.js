@@ -1,22 +1,65 @@
 // /pages/api/transcript_chat.js
 import { YoutubeTranscript } from "youtube-transcript";
-import { ChatOpenAI } from "langchain/chat_models/openai";
+import { ChatOpenAI } from "@langchain/openai";
 import { LLMChain } from "langchain/chains";
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,
-  SystemMessagePromptTemplate,
-} from "langchain/prompts";
+  SystemMessagePromptTemplate
+} from "@langchain/core/prompts";
 import extractVideoId from "../../utils/extractVideoId";
 import getVideoMetaData from "../../utils/getVideoMetaData";
 import ResearchAgent from "../../agents/ResearchAgent";
+import decodeHtml from '../../utils/decodeHtml'
 
 // Global Variables
+let chain;
+let chatHistory = [];
+let transcript = "";
+let metadataString = "";
+let research;
 
 // Initialize Chain with Data
 const initChain = async (transcript, metadataString, research, topic) => {
   try {
-    // do stuff
+    const llm = new ChatOpenAI({temperature: 0.7, modelName: "gpt-3.5-turbo"});
+
+    // For chat models, we provide a `ChatPromptTemplate` class that can be used to format chat prompts.
+    // This allows us to set the template that the bot sees every time
+    const chatPrompt = ChatPromptTemplate.fromPromptMessages(
+      [
+        SystemMessagePromptTemplate.fromTemplate(
+          "You are a helpful social media assistant that provides research, new content, and advice to me. \n You are given the transcript of the video: {transcript} \n and video metadata: {metadataString} as well as additional research: {research}"
+        ),
+        HumanMessagePromptTemplate.fromTemplate(
+          "{input}. Remember to use the video transcript and research as reference."
+        ),
+      ],
+      {
+        inputVariables: ["transcript", "metadataString", "research", "input"],
+      }
+    );
+    
+
+    const question = `Write me a script for a new video that provides commentary on this video in a lighthearted, joking manner. It should compliment ${topic} with puns.`;
+  
+    chain = new LLMChain({
+      prompt: chatPrompt,
+      llm: llm,
+      //memory,
+    });
+
+    const response = await chain.call({
+      transcript,
+      metadataString,
+      research,
+      input: question,
+    });
+    
+    chatHistory.push({
+      role: "assistant",
+      content: response.text,
+    });
 
     return response;
   } catch (error) {
@@ -29,7 +72,6 @@ const initChain = async (transcript, metadataString, research, topic) => {
 
 export default async function handler(req, res) {
   const { prompt, topic, firstMsg } = req.body;
-  console.log(`Prompt: ${prompt} Topic: ${topic}`);
 
   if (
     chain === undefined &&
@@ -48,9 +90,35 @@ export default async function handler(req, res) {
 
   // Just like in the previous section, if we have a firstMsg set to true, we need to initialize with chain with the context
   if (firstMsg) {
-    console.log("Received URL");
     try {
-      // Initialize chain with transcript, metadata, research, and topic
+      //get context
+      const videoId = extractVideoId(prompt);
+      // API call for video transcript (we just grab the array and flatten it into a variable)[{text:" "},{ text: ""}]
+      const transcriptResponse = await YoutubeTranscript.fetchTranscript(prompt);
+
+      if(!transcriptResponse) {
+        return res.status(400).json({error: 'Failed to get transcript'})
+      }
+
+      let transcript = '';
+        transcriptResponse.forEach(line => {
+          transcript += decodeHtml(line.text);
+      })
+
+      //video metadata => youtube data api v3
+      // API call for video metadata –– go to VideoMetaData and explain this
+      const metadata = await getVideoMetaData(videoId);
+      // JSON object { [], [], [] } , null (no characters between), and use 2 spaces for indentation
+      metadataString = JSON.stringify(metadata, null, 2);
+      console.log('metadataString: ======> ', { metadataString });
+
+      // ResearchAgent
+      //research from the web
+      //topic: predro pascal
+      research = await ResearchAgent(topic)
+
+      //finally we have all the context and we can initialize the chain!
+      const response = await initChain(transcript, metadataString, research, topic)
 
       // return res.status(200).json({ output: research });
       return res.status(200).json({
@@ -67,11 +135,24 @@ export default async function handler(req, res) {
         .json({ error: "An error occurred while fetching transcript" });
     }
   } else {
-    // Very similar to previous section, don't worry too much about this just copy and paste it from the previous section!
-    console.log("Received question");
     try {
-      // do stuff
+      const question = prompt;
 
+      console.log("Asking:", question);
+      console.log("Using old chain:", chain);
+      // Everytime we call the chain we need to pass all the context back so that it can fill in the prompt template appropriately
+      const response = await chain.call({
+        transcript,
+        metadataString,
+        research,
+        input: question,
+      });
+
+      // update chat history
+      chatHistory.push({
+        role: "assistant",
+        content: response.text,
+      });
       // just make sure to modify this response as necessary.
       return res.status(200).json({
         output: response,

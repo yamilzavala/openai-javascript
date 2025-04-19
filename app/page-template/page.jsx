@@ -8,11 +8,13 @@ import PageHeader from "../components/PageHeader";
 import Title from "../components/Title";
 import TwoColumnLayout from "../components/TwoColumnLayout";
 import ButtonContainer from "../components/ButtonContainer";
+import Loading from "../components/Loading";
 import "../globals.css";
 
 const AnyComponentName = () => {
   const [prompt, setPrompt] = useState("");
   const [data, setData] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handlePromptChange = (e) => {
     setPrompt(e.target.value);
@@ -21,23 +23,34 @@ const AnyComponentName = () => {
   const handleSubmit = async () => {
     console.log(`sending ${prompt}`);
     // STEP 1: Modify Endpoint
-    const response = await fetch("/api/", {
-      // STEP 2: Check Method
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ input: prompt }),
-    });
-
-    const searchRes = await response.json();
-    // Step 3: Double check the console log and setData accordingly
-    console.log(searchRes);
-    setData(searchRes.output);
+    try {
+      setLoading(true)
+      const response = await fetch("/api/", {
+        // STEP 2: Check Method
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ input: prompt }),
+      });
+  
+      const searchRes = await response.json();
+      // Step 3: Double check the console log and setData accordingly
+      console.log(searchRes);
+      setData(searchRes.output);
+    } catch (error) {
+      console.log('An error ocurred')
+    } finally {
+      setLoading(false)
+    }
   };
 
   return (
     <>
+      {loading && (
+        <Loading/>
+      )}
+      
       <Title emoji="💬" headingText="PDF-GPT" />
       <TwoColumnLayout
         leftChildren={

@@ -6,6 +6,7 @@ import PromptBox from "../components/PromptBox";
 import ResultWithSources from "../components/ResultWithSources";
 import Title from "../components/Title";
 import TwoColumnLayout from "../components/TwoColumnLayout";
+import Loading from "../components/Loading";
 
 /**
  * YOUTUBE CHATBOT:
@@ -17,6 +18,7 @@ const VideoChat = () => {
   );
   const [error, setError] = useState(null);
   const [firstMsg, setFirstMsg] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // And we'll set an initial message as well, to make the UI look a little nicer.
   const [messages, setMessages] = useState([
@@ -40,7 +42,7 @@ const VideoChat = () => {
         ...prevMessages,
         { text: prompt, type: "user", sourceDocuments: null },
       ]);
-
+      setLoading(true)
       const response = await fetch(`/api/video-chat`, {
         method: "POST",
         headers: {
@@ -70,11 +72,16 @@ const VideoChat = () => {
     } catch (err) {
       console.error(err);
       setError("Error fetching transcript. Please try again.");
+    } finally {
+      setLoading(false)
     }
   };
 
   return (
     <>
+      {loading && (
+        <Loading/>
+      )}
       <Title emoji="💬" headingText="YouTube Video Chat" />
       <TwoColumnLayout
         leftChildren={

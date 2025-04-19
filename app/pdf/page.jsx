@@ -8,6 +8,7 @@ import PageHeader from "../components/PageHeader";
 import Title from "../components/Title";
 import TwoColumnLayout from "../components/TwoColumnLayout";
 import ButtonContainer from "../components/ButtonContainer";
+import Loading from "../components/Loading";
 import "../globals.css";
 
 // This functional component is responsible for loading PDFs
@@ -21,6 +22,7 @@ const PDFLoader = () => {
     },
   ]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // This function updates the prompt value when the user types in the prompt box
   const handlePromptChange = (e) => {
@@ -34,6 +36,7 @@ const PDFLoader = () => {
       console.log(`sending ${prompt}`);
       console.log(`using ${endpoint}`);
 
+      setLoading(true)
       // A GET request is sent to the backend
       const response = await fetch(`/api/${endpoint}`, {
         method: "GET",
@@ -46,6 +49,8 @@ const PDFLoader = () => {
     } catch (error) {
       console.log(error);
       setError(error.message);
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -60,7 +65,7 @@ const PDFLoader = () => {
         ...prevMessages,
         { text: prompt, type: "user", sourceDocuments: null },
       ]);
-
+      setLoading(true)
       // A POST request is sent to the backend with the current prompt in the request body
       const response = await fetch(`/api/${endpoint}`, {
         method: "POST",
@@ -94,12 +99,18 @@ const PDFLoader = () => {
     } catch (error) {
       console.log(error);
       setError(error.message);
+    } finally {
+      setLoading(false)
     }
   };
 
   // The component returns a two column layout with various child components
   return (
     <>
+      {loading && (
+        <Loading/>
+      )}
+
       <Title emoji="💬" headingText="PDF-GPT" />
       <TwoColumnLayout
         leftChildren={

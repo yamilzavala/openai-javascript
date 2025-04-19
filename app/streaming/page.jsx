@@ -4,6 +4,7 @@ import PageHeader from "../components/PageHeader";
 import PromptBox from "../components/PromptBox";
 import ResultStreaming from "../components/ResultStreaming";
 import Title from "../components/Title";
+import Loading from "../components/Loading";
 import TwoColumnLayout from "app/components/TwoColumnLayout";
 
 const Streaming = () => {
@@ -11,7 +12,7 @@ const Streaming = () => {
   const [error, setError] = useState(null);
   const [data, setData] = useState("");
   const [source, setSource] = useState(null);
-  //   add code
+  const [loading, setLoading] = useState(false);
 
   const processToken = (token) => {
     return token.replace(/\\n/g, "\n").replace(/\"/g, "");
@@ -24,6 +25,7 @@ const Streaming = () => {
   //User write something and do submit
   const handleSubmit = async () => {
     try {
+      setLoading(true)
       //the message is send to backend
       await fetch('/api/streaming', {
         method: 'POST',
@@ -57,6 +59,8 @@ const Streaming = () => {
     } catch (err) {
       console.error(err);
       setError(error);
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -72,6 +76,9 @@ const Streaming = () => {
   
   return (
     <>
+      {loading && (
+        <Loading/>
+      )}
       <Title emoji="💭" headingText="Streaming" />
       <TwoColumnLayout
         leftChildren={

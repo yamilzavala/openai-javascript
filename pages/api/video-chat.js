@@ -1,18 +1,21 @@
 // /pages/api/transcript.js
+/*
+[🧑 User] --> (question) --> [🧠 Embedding] --> [🔎 Vector Store (HNSWLib)] 
+                                  ↓
+                             [Chunks relevants]
+                                  ↓
+                       [🤖 ChatOpenAI (with context)]
+                                  ↓
+                         [💬 Model response]
+*/
+
 import { YoutubeTranscript } from "youtube-transcript";
 import { ChatOpenAI } from "@langchain/openai";
 import { ConversationalRetrievalQAChain } from "langchain/chains";
 import { HNSWLib } from "@langchain/community/vectorstores/hnswlib";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
-
-function decodeHtml(html) {
-  return html
-    .replace(/&amp;#39;/g, "'")  // special case that appears a lot
-    .replace(/&#39;/g, "'")     // simple quote
-    .replace(/&quot;/g, '"')    // doble quote
-    .replace(/&amp;/g, "&");    // ampersand
-}
+import decodeHtml from '../../utils/decodeHtml'
 
 // Global variables
 let chain;

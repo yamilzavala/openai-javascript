@@ -8,13 +8,14 @@ import TwoColumnLayout from "../components/TwoColumnLayout";
 import ResultWithSources from "../components/ResultWithSources";
 import ButtonContainer from "../components/ButtonContainer";
 import Button from "../components/Button";
+import Loading from "../components/Loading";
 
 const endpoint = "/api/resume-query-metadata";
 
 const ResumeReader = () => {
   const [prompt, setPrompt] = useState("Who has experience with Python?");
   const [error, setError] = useState(null);
-
+  const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState([
     {
       text: "After loading the vector database, ask me anything about your documents! E.g., Has anyone worked at Meta? Where did Joanna Smith go to school? Does Kaito Esquivel have any recommendations?",
@@ -36,6 +37,7 @@ const ResumeReader = () => {
         },
       ]);
 
+      setLoading(true)
       const response = await fetch(`/api/resume-upload`);
       const transcriptRes = await response.json();
 
@@ -59,6 +61,8 @@ const ResumeReader = () => {
     } catch (err) {
       console.error(err);
       setError("Error");
+    } finally {
+      setLoading(true)
     }
   };
 
@@ -76,6 +80,7 @@ const ResumeReader = () => {
         { text: "...", type: "bot", sourceDocuments: null },
       ]);
 
+      setLoading(true)
       const response = await fetch(`${endpoint}`, {
         method: "POST",
         headers: {
@@ -103,12 +108,18 @@ const ResumeReader = () => {
     } catch (err) {
       console.error(err);
       setError(err);
+    } finally {
+      setLoading(false)
     }
   };
 
   return (
-    <>
+   
       <>
+        {loading && (
+          <Loading/>
+        )}
+
         <Title emoji="🤖" headingText="RoboHR" />
         <TwoColumnLayout
           leftChildren={
@@ -143,7 +154,7 @@ const ResumeReader = () => {
           }
         />
       </>
-    </>
+    
   );
 };
 
