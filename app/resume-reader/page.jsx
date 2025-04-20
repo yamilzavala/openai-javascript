@@ -62,7 +62,7 @@ const ResumeReader = () => {
       console.error(err);
       setError("Error");
     } finally {
-      setLoading(true)
+      setLoading(false)
     }
   };
 
